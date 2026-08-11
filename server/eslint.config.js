@@ -5,17 +5,19 @@ import globals from 'globals'
 export default tseslint.config(
   // Global ignores
   {
-    ignores: ['dist/**'],
+    ignores: ['dist/**', 'eslint.config.js'],
   },
 
   // Base configs
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
 
   // Configuration for TypeScript files
   {
     files: ['**/*.ts'],
+    extends: [
+      ...tseslint.configs.recommendedTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked,
+    ],
     languageOptions: {
       globals: {
         ...globals.node,
