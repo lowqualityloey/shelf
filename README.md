@@ -1,19 +1,26 @@
 # 📚 Shelf
 
-> A personal reading list tracker built with Vite, React, TypeScript, TanStack Query, Auth0, Express, and PostgreSQL.
+> A monorepo with a React frontend and an Express API — the starting point for a personal reading list tracker.
 
-Shelf lets you search for books via the [Open Library API](https://openlibrary.org/developers/api), save them to your personal library, and track your reading progress — all wrapped in a clean, responsive UI.
+This repo currently contains the project scaffolding: a Vite + React 19 + TypeScript starter frontend and a minimal Express 5 + TypeScript backend, with PostgreSQL ready to go in Docker.
 
 ---
 
-## ✨ Features
+## 🏗 Structure
 
-- 🔍 **Search Books** — Find books by title, author, or ISBN using the Open Library API
-- 📖 **Track Reading Progress** — Organize books into *Want to Read*, *Reading*, or *Read*
-- ⭐ **Rate & Review** — Add personal notes and star ratings to finished books
-- 🔐 **Secure Auth** — Authentication powered by Auth0
-- ⚡ **Fast UI** — Optimistic updates and smart caching with TanStack Query
-- 🐳 **Easy Setup** — PostgreSQL runs in Docker; everything else runs locally
+```
+shelf/
+├── client/                 # Vite + React 19 + TypeScript frontend
+│   └── src/
+│       ├── App.tsx         # Main app component
+│       ├── main.tsx        # React entry point
+│       └── index.css       # Global styles
+├── server/                 # Express 5 + TypeScript backend
+│   └── src/
+│       └── index.ts        # Server entry point (GET /health)
+├── docker-compose.yml      # PostgreSQL 16 service definition
+└── README.md
+```
 
 ---
 
@@ -21,13 +28,10 @@ Shelf lets you search for books via the [Open Library API](https://openlibrary.o
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | Vite + React 18 + TypeScript |
-| **State & Data** | TanStack Query (React Query) |
-| **Auth** | Auth0 |
-| **Backend** | Express.js + TypeScript |
-| **Database** | PostgreSQL 16 |
-| **DevOps** | Docker Compose |
-| **External API** | [Open Library API](https://openlibrary.org/developers/api) |
+| **Frontend** | Vite 8 + React 19 + TypeScript |
+| **Backend** | Express 5 + TypeScript (NodeNext) |
+| **Database** | PostgreSQL 16 (Docker, not yet wired in) |
+| **Tooling** | ESLint 10, TypeScript, Docker Compose |
 
 ---
 
@@ -35,44 +39,26 @@ Shelf lets you search for books via the [Open Library API](https://openlibrary.o
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
+- [Node.js](https://nodejs.org/) 20+
 - [Docker](https://www.docker.com/) & Docker Compose
-- An [Auth0](https://auth0.com/) account (free tier)
 
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/yourusername/shelf.git
-cd shelf
-```
-
-### 2. Configure Auth0
-
-1. Create a new **Single Page Application** in your Auth0 dashboard
-2. Add `http://localhost:5173` to **Allowed Callback URLs**, **Allowed Logout URLs**, and **Allowed Web Origins**
-3. Copy `.env.example` to `.env` and fill in your Auth0 credentials:
-
-```bash
-cp server/.env.example server/.env
-cp client/.env.example client/.env
-```
-
-### 3. Start the database
+### 1. Start the database (optional for now)
 
 ```bash
 docker compose up -d db
 ```
 
-### 4. Start the API
+### 2. Start the API
 
 ```bash
 cd server
 npm install
-npm run migrate  # run database migrations
 npm run dev
 ```
 
-### 5. Start the client
+The server runs on `http://localhost:3000` — check it with `curl http://localhost:3000/health` (returns `{"status":"ok"}`).
+
+### 3. Start the client
 
 ```bash
 cd client
@@ -80,70 +66,15 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) and start tracking your reads! 📚
-
----
-
-## 📁 Project Structure
-
-```
-shelf/
-├── client/                 # Vite + React + TypeScript frontend
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── hooks/          # Custom TanStack Query hooks
-│   │   ├── pages/          # Route-level pages
-│   │   └── lib/            # API clients & utilities
-│   └── ...
-├── server/                 # Express + TypeScript backend
-│   ├── src/
-│   │   ├── routes/         # API route handlers
-│   │   ├── middleware/     # Auth & validation middleware
-│   │   └── db/             # Migrations & queries
-│   └── ...
-├── docker-compose.yml      # PostgreSQL service definition
-└── README.md
-```
-
----
-
-## 🗄 Database Schema
-
-```sql
-users
-├── id (PK)
-├── auth0_sub (unique)
-├── email
-└── created_at
-
-books
-├── id (PK)
-├── open_library_key (unique)
-├── title
-├── author
-└── cover_url
-
-user_books
-├── id (PK)
-├── user_id (FK)
-├── book_id (FK)
-├── status (want_to_read | reading | read)
-├── rating (1-5)
-├── notes
-└── updated_at
-```
+Open [http://localhost:5173](http://localhost:5173) to see the Vite starter page.
 
 ---
 
 ## 🔌 API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/books/search?q={query}` | Public | Search books via Open Library |
-| `GET` | `/api/shelf` | Required | Get current user's reading list |
-| `POST` | `/api/shelf` | Required | Add a book to shelf |
-| `PATCH` | `/api/shelf/:bookId` | Required | Update status, rating, or notes |
-| `DELETE` | `/api/shelf/:bookId` | Required | Remove a book from shelf |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check, returns `{ "status": "ok" }` |
 
 ---
 
@@ -152,8 +83,8 @@ user_books
 ### Client
 
 ```bash
-npm run dev       # Start dev server
-npm run build     # Production build
+npm run dev       # Start dev server (Vite)
+npm run build     # Typecheck + production build
 npm run lint      # Run ESLint
 npm run preview   # Preview production build
 ```
@@ -161,10 +92,10 @@ npm run preview   # Preview production build
 ### Server
 
 ```bash
-npm run dev       # Start with hot-reload (nodemon)
+npm run dev       # Start with hot-reload (tsx watch)
 npm run build     # Compile TypeScript
-npm start         # Run compiled output
-npm run migrate   # Run database migrations
+npm start         # Run compiled output (dist/index.js)
+npm run lint      # Run ESLint
 ```
 
 ---
@@ -187,16 +118,6 @@ docker compose down
 
 ---
 
-## 📸 Screenshots
-
-*Coming soon...*
-
----
-
 ## 📝 License
 
 [MIT](LICENSE)
-
----
-
-Built with ☕ and too many unread books.
