@@ -83,19 +83,21 @@ Open [http://localhost:5173](http://localhost:5173) to see the Vite starter page
 ### Client
 
 ```bash
-npm run dev       # Start dev server (Vite)
-npm run build     # Typecheck + production build
-npm run lint      # Run ESLint
-npm run preview   # Preview production build
+npm run dev        # Start dev server (Vite)
+npm run build      # Typecheck + production build
+npm run typecheck  # Typecheck only (no emit)
+npm run lint       # Run ESLint
+npm run preview    # Preview production build
 ```
 
 ### Server
 
 ```bash
-npm run dev       # Start with hot-reload (tsx watch)
-npm run build     # Compile TypeScript
-npm start         # Run compiled output (dist/index.js)
-npm run lint      # Run ESLint
+npm run dev        # Start with hot-reload (tsx watch)
+npm run build      # Compile TypeScript
+npm run typecheck  # Typecheck only (no emit)
+npm start          # Run compiled output (dist/index.js)
+npm run lint       # Run ESLint
 ```
 
 ---
