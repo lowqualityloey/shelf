@@ -2,8 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 
 const app = express()
-const PORT = process.env.PORT || 3000 // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-
+const PORT = process.env.PORT ?? 3000 
 app.use(express.json())
 
 app.get('/health', (_req, res) => {
