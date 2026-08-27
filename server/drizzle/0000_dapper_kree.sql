@@ -10,7 +10,7 @@ CREATE TABLE "books" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_books" (
-	"user_id" integer NOT NULL,
+	"user_id" text NOT NULL,
 	"book_id" integer NOT NULL,
 	"status" "reading_status" DEFAULT 'to-read' NOT NULL,
 	"rating" smallint,
@@ -24,7 +24,7 @@ CREATE TABLE "user_books" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" serial PRIMARY KEY NOT NULL
+	"id" text PRIMARY KEY NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "user_books" ADD CONSTRAINT "user_books_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
