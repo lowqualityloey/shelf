@@ -1,11 +1,11 @@
-import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
-import globals from 'globals'
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import globals from 'globals';
 
 export default tseslint.config(
   // Global ignores
   {
-    ignores: ['dist/**', 'eslint.config.js'],
+    ignores: ['dist/**', 'eslint.config.js', 'drizzle.config.ts'],
   },
 
   // Base configs
@@ -14,10 +14,7 @@ export default tseslint.config(
   // Configuration for TypeScript files
   {
     files: ['**/*.ts'],
-    extends: [
-      ...tseslint.configs.recommendedTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked,
-    ],
+    extends: [...tseslint.configs.recommendedTypeChecked, ...tseslint.configs.stylisticTypeChecked],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -39,4 +36,4 @@ export default tseslint.config(
       ],
     },
   },
-)
+);
