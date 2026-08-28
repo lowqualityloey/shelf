@@ -1,16 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import { User } from '@supabase/supabase-js';
 
+interface SupabaseJwtPayload {
+  sub: string;
+  email?: string;
+  exp?: number;
+  aud?: string;
+  app_metadata?: Record<string, unknown>;
+  user_metadata?: Record<string, unknown>;
+}
+
 // Custom Request interface with authenticated Supabase user
 export interface AuthenticatedRequest extends Request {
   user?: User;
 }
 
-export async function authMiddleware(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
@@ -35,7 +40,7 @@ export async function authMiddleware(
     const rawString = Buffer.from(payloadBase64, 'base64url').toString('utf-8');
     // Fix Supabase's malformed aal claim if present
     const cleanString = rawString.replace(/,"aal\d+",/g, ',"aal":"aal1",');
-    const payload = JSON.parse(cleanString);
+    const payload = JSON.parse(cleanString) as SupabaseJwtPayload;
 
     // Check expiration
     if (payload.exp && Date.now() >= payload.exp * 1000) {
