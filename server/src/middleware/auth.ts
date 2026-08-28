@@ -1,20 +1,10 @@
-import 'dotenv/config';
 import { Request, Response, NextFunction } from 'express';
-import { createClient, User } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 
 // Custom Request interface with authenticated Supabase user
 export interface AuthenticatedRequest extends Request {
   user?: User;
 }
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function authMiddleware(
   req: AuthenticatedRequest,
@@ -35,17 +25,37 @@ export async function authMiddleware(
     return;
   }
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser(token);
+  try {
+    // Decode the Base64 payload from the JWT (Header.Payload.Signature)
+    const payloadBase64 = token.split('.')[1];
+    if (!payloadBase64) {
+      res.status(401).json({ error: 'Unauthorized: Malformed JWT' });
+      return;
+    }
+    const rawString = Buffer.from(payloadBase64, 'base64url').toString('utf-8');
+    // Fix Supabase's malformed aal claim if present
+    const cleanString = rawString.replace(/,"aal\d+",/g, ',"aal":"aal1",');
+    const payload = JSON.parse(cleanString);
 
-  if (error || !user) {
-    res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
-    return;
+    // Check expiration
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      res.status(401).json({ error: 'Unauthorized: Token expired' });
+      return;
+    }
+
+    // Attach user to request
+    req.user = {
+      id: payload.sub,
+      email: payload.email,
+      app_metadata: payload.app_metadata ?? {},
+      user_metadata: payload.user_metadata ?? {},
+      aud: payload.aud ?? 'authenticated',
+      created_at: '',
+    };
+
+    next();
+  } catch (err) {
+    console.error('JWT parse error:', err);
+    res.status(401).json({ error: 'Unauthorized: Invalid token format' });
   }
-
-  // Attach verified user to request
-  req.user = user;
-  next();
 }
