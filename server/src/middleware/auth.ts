@@ -11,11 +11,16 @@ interface SupabaseJwtPayload {
 }
 
 // Custom Request interface with authenticated Supabase user
-export interface AuthenticatedRequest extends Request {
-  user?: User;
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      user?: User;
+    }
+  }
 }
 
-export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
