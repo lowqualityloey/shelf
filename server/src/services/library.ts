@@ -19,6 +19,16 @@ export interface AddBookInput {
   notes?: string;
 }
 
+export interface UpdateBookInput {
+  status?: ReadingStatus;
+  rating?: number;
+  notes?: string;
+  dateStarted?: Date;
+  dateFinished?: Date;
+  favouriteQuotes?: string;
+  isRecommended?: boolean;
+}
+
 export async function getUserLibrary(userId: string, status?: ReadingStatus) {
   const whereClause = status
     ? and(eq(userBooks.userId, userId), eq(userBooks.status, status))
@@ -77,4 +87,21 @@ export async function addBookToLibrary(userId: string, input: AddBookInput) {
   });
 
   return getUserBook(userId, book.id);
+}
+
+export async function updateBookInLibrary(userId: string, bookId: number, input: UpdateBookInput) {
+  const existingBook = await db.query.userBooks.findFirst({
+    where: and(eq(userBooks.userId, userId), eq(userBooks.bookId, bookId)),
+  });
+
+  if (!existingBook) {
+    throw new Error('Book not found in library');
+  }
+
+  await db
+    .update(userBooks)
+    .set(input)
+    .where(and(eq(userBooks.userId, userId), eq(userBooks.bookId, bookId)));
+
+  return getUserBook(userId, bookId);
 }
