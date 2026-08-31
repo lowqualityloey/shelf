@@ -7,6 +7,7 @@ import {
   AddBookInput,
   updateBookInLibrary,
   UpdateBookInput,
+  removeBookFromLibrary,
 } from '../services/library.js';
 
 const router = Router();
@@ -89,6 +90,19 @@ router.patch('/:bookId', async (req, res) => {
     }
     console.error('Error updating book:', error);
     res.status(500).json({ error: 'Failed to update book' });
+  }
+});
+
+router.delete('/:bookId', async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const bookId = Number(req.params.bookId);
+
+    await removeBookFromLibrary(userId, bookId);
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error removing book', error);
+    res.status(500).json({ error: 'Failed to remove book from library' });
   }
 });
 

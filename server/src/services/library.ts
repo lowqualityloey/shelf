@@ -105,3 +105,9 @@ export async function updateBookInLibrary(userId: string, bookId: number, input:
 
   return getUserBook(userId, bookId);
 }
+
+export async function removeBookFromLibrary(userId: string, bookId: number) {
+  return db
+    .delete(userBooks)
+    .where(and(eq(userBooks.userId, userId), eq(userBooks.bookId, bookId)));
+}
