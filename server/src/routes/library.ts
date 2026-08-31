@@ -4,10 +4,10 @@ import {
   getUserLibrary,
   getUserBook,
   addBookToLibrary,
-  AddBookInput,
   updateBookInLibrary,
-  UpdateBookInput,
   removeBookFromLibrary,
+  addBookSchema,
+  updateBookSchema,
 } from '../services/library.js';
 
 const router = Router();
@@ -58,14 +58,18 @@ router.post('/', async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    const input: AddBookInput = req.body as AddBookInput;
-    if (!input.title || !input.author) {
+
+    const result = addBookSchema.safeParse(req.body);
+    if (!result.success) {
       res.status(400).json({
-        error: 'Title and author are required',
+        error: 'Validation failed',
+        details: result.error.issues,
       });
       return;
     }
-    const book = await addBookToLibrary(userId, input);
+
+    const book = await addBookToLibrary(userId, result.data);
+
     res.status(201).json(book);
   } catch (error) {
     console.error('Error adding book:', error);
@@ -79,8 +83,17 @@ router.patch('/:bookId', async (req, res) => {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const bookId = Number(req.params.bookId);
-    const input: UpdateBookInput = req.body as UpdateBookInput;
-    const updated = await updateBookInLibrary(userId, bookId, input);
+
+    const result = updateBookSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: result.error.issues,
+      });
+      return;
+    }
+
+    const updated = await updateBookInLibrary(userId, bookId, result.data);
 
     res.json(updated);
   } catch (error) {

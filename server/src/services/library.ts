@@ -1,33 +1,44 @@
 import { db } from '../db.js';
 import { books, userBooks } from '../schema.js';
 import { and, eq } from 'drizzle-orm';
+import { z } from 'zod';
 
-type ReadingStatus = 'to-read' | 'reading' | 'finished';
+// 1. Reading status enum schema
+const readingStatusSchema = z.enum(['to-read', 'reading', 'finished']);
 
-export interface AddBookInput {
-  // Book master data
-  title: string;
-  author: string;
-  isbn?: string;
-  description?: string;
-  coverUrl?: string;
-  genre?: string;
+// 2. Add Book Schema
+export const addBookSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  author: z.string().min(1, 'Author is required'),
+  isbn: z.string().optional(),
+  description: z.string().optional(),
+  coverUrl: z.string().optional(),
+  genre: z.string().optional(),
+  status: readingStatusSchema.optional().default('to-read'),
+  rating: z.number().int().min(1).max(5).optional(),
+  notes: z.string().optional(),
+});
 
-  // Personal user reading data
-  status?: ReadingStatus;
-  rating?: number;
-  notes?: string;
-}
+// 3. Update Book Schema
+export const updateBookSchema = z.object({
+  status: readingStatusSchema.optional(),
+  rating: z
+    .number()
+    .int()
+    .min(1, 'Rating must be between 1 and 5')
+    .max(5, 'Rating must be between 1 and 5')
+    .optional(),
+  notes: z.string().optional(),
+  dateStarted: z.coerce.date().optional(),
+  dateFinished: z.coerce.date().optional(),
+  favouriteQuotes: z.string().optional(),
+  isRecommended: z.boolean().optional(),
+});
 
-export interface UpdateBookInput {
-  status?: ReadingStatus;
-  rating?: number;
-  notes?: string;
-  dateStarted?: Date;
-  dateFinished?: Date;
-  favouriteQuotes?: string;
-  isRecommended?: boolean;
-}
+// 4. Auto-derive TypeScript types from schemas
+export type AddBookInput = z.infer<typeof addBookSchema>;
+export type UpdateBookInput = z.infer<typeof updateBookSchema>;
+export type ReadingStatus = z.infer<typeof readingStatusSchema>;
 
 export async function getUserLibrary(userId: string, status?: ReadingStatus) {
   const whereClause = status
