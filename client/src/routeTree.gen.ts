@@ -9,27 +9,127 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedLibraryBookIdRouteImport } from './routes/_authenticated/library.$bookId'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedLibraryBookIdRoute =
+  AuthenticatedLibraryBookIdRouteImport.update({
+    id: '/$bookId',
+    path: '/$bookId',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/library/$bookId': typeof AuthenticatedLibraryBookIdRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/library/$bookId': typeof AuthenticatedLibraryBookIdRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/_authenticated/library/$bookId': typeof AuthenticatedLibraryBookIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths: '/' | '/library' | '/library/$bookId'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to: '/' | '/library' | '/library/$bookId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/_authenticated/library'
+    | '/_authenticated/library/$bookId'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/library': {
+      id: '/_authenticated/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/library/$bookId': {
+      id: '/_authenticated/library/$bookId'
+      path: '/$bookId'
+      fullPath: '/library/$bookId'
+      preLoaderRoute: typeof AuthenticatedLibraryBookIdRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+  }
+}
+
+interface AuthenticatedLibraryRouteChildren {
+  AuthenticatedLibraryBookIdRoute: typeof AuthenticatedLibraryBookIdRoute
+}
+
+const AuthenticatedLibraryRouteChildren: AuthenticatedLibraryRouteChildren = {
+  AuthenticatedLibraryBookIdRoute: AuthenticatedLibraryBookIdRoute,
+}
+
+const AuthenticatedLibraryRouteWithChildren =
+  AuthenticatedLibraryRoute._addFileChildren(AuthenticatedLibraryRouteChildren)
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRouteWithChildren,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
