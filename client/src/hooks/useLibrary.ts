@@ -17,8 +17,20 @@ export function useLibrary(status?: ReadingStatus) {
   return useQuery({
     queryKey: LIBRARY_QUERY_KEY,
     queryFn: async () => {
-      const data = await apiFetch<UserLibraryBook[]>('/api/library');
-      return data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw = await apiFetch<any[]>('/api/library');
+      return raw.map((item) => ({
+        bookId: item.bookId,
+        status: (item.status === 'to-read'
+          ? 'want-to-read'
+          : item.status === 'reading'
+            ? 'currently-reading'
+            : 'read') as ReadingStatus,
+        rating: item.rating,
+        title: item.book?.title ?? item.title,
+        author: item.book?.author ?? item.author,
+        coverUrl: item.book?.coverUrl ?? item.coverUrl,
+      })) as UserLibraryBook[];
     },
     select: (library) => (status ? library.filter((book) => book.status === status) : library),
   });
@@ -29,9 +41,12 @@ export function useUpdateBookStatus() {
 
   return useMutation({
     mutationFn: async ({ bookId, status }: { bookId: number; status: ReadingStatus }) => {
+      const serverStatus =
+        status === 'want-to-read' ? 'to-read' : status === 'read' ? 'finished' : 'reading';
+
       await apiFetch(`/api/library/${bookId}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: serverStatus }),
       });
     },
 
