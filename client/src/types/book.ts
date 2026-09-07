@@ -21,3 +21,15 @@ export interface OpenLibrarySearchResponse {
   start: number;
   docs: OpenLibraryDoc[];
 }
+
+export type ReadingStatus = 'want-to-read' | 'currently-reading' | 'read';
+
+export interface BookCardProps {
+  id?: number | string;
+  title: string;
+  author?: string;
+  coverUrl?: string;
+  status?: ReadingStatus;
+  onStatusChange?: (status: ReadingStatus) => void;
+  onClick?: () => void;
+}
